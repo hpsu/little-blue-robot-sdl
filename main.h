@@ -6,6 +6,8 @@
 #define INTERNAL_WIDTH 	256
 #define INTERNAL_HEIGHT 240
 #define SPRITESIZE 		16
+#define BLOCKSIZEX 		16
+#define BLOCKSIZEY 		15
 
 class SpriteSheet {
 	public:
