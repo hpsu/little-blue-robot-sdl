@@ -16,11 +16,11 @@ CXXFLAGS_WIN64 = -static -static-libstdc++ -static-libgcc $(CXXFLAGS)
 LDFLAGS = $(SDL_LIB)
 EXE = rockman
 
-all: $(EXE)
+all: $(EXE) $(EXE)_64.exe
 
-win64: $(EXE).exe
+win64: $(EXE)_64.exe
 
-$(EXE).exe: main_win64.o
+$(EXE)_64.exe: main_win64.o
 	$(CXX_WIN64) $< $(SDL_LIB_WIN64) -o $@
 
 $(EXE): main.o
@@ -33,4 +33,4 @@ main.o: main.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm *.o && rm $(EXE)
+	rm *.o && rm $(EXE) $(EXE)_64.exe
