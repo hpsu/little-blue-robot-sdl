@@ -63,11 +63,12 @@ void SpriteSheet::render(int x, int y, int frameOffset) {
 		,SPRITESIZE
 	};
 	SDL_Rect renderRect = {
-		x * SPRITESIZE
-		,y * SPRITESIZE
+		(x * SPRITESIZE) - camera.x
+		,(y * SPRITESIZE)
 		,SPRITESIZE
 		,SPRITESIZE
 	};
+
 
 	SDL_RenderCopy(gRenderer, mTexture, &clipRect, &renderRect);
 }
@@ -92,9 +93,15 @@ bool init() {
 				success = false;
 			}
 			else {
-				if(!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "0" )) {
+				if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0")) {
 					printf("Warning: Failed to set render hint!");
 				}
+
+				if(!SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1"))
+				{
+					printf( "Warning: VSync not enabled!" );
+				}
+
 
 				if(!SDL_RenderSetLogicalSize(gRenderer, INTERNAL_WIDTH, INTERNAL_HEIGHT)) {
 					printf("Warning: Failed to set logical size");
@@ -175,8 +182,13 @@ int main(int argc, char* args[]) {
 								case SDLK_F11:
 									toggleFullscreen();
 									break;
+
+								case SDLK_LEFT:
+									camera.x--;
+									break;
+
 								case SDLK_RIGHT:
-									
+									camera.x++;
 									break;
 							}
 							break;

@@ -29,3 +29,4 @@ SDL_Renderer* gRenderer = NULL;
 SpriteSheet gSpriteSheetTexture;
 
 int bIsFullscreen = false;
+SDL_Rect camera = { 0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT };
