@@ -27,3 +27,5 @@ void close();
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SpriteSheet gSpriteSheetTexture;
+
+int bIsFullscreen = false;

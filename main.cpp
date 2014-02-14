@@ -143,6 +143,11 @@ void paintLevel(int level[15][16]) {
 	}
 }
 
+void toggleFullscreen() {
+	SDL_SetWindowFullscreen(gWindow, bIsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+	bIsFullscreen = !bIsFullscreen;
+}
+
 int main(int argc, char* args[]) {
 	if(!init()) {
 		printf("Failed to initialize!\n");
@@ -160,6 +165,20 @@ int main(int argc, char* args[]) {
 					switch(e.type) {
 						case SDL_QUIT:
 							quit = true;
+							break;
+						case SDL_KEYDOWN:
+							switch(e.key.keysym.sym) {
+								case SDLK_RETURN:
+									if(e.key.keysym.mod & KMOD_ALT)
+									toggleFullscreen();
+									break;
+								case SDLK_F11:
+									toggleFullscreen();
+									break;
+								case SDLK_RIGHT:
+									
+									break;
+							}
 							break;
 					}
 				}
