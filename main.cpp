@@ -80,10 +80,6 @@ bool init() {
 		success = false;
 	}
 	else {
-		//if(!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "0" )) {
-		//	printf( "Warning: Linear texture filtering not enabled!" );
-		//}
-
 		gWindow = SDL_CreateWindow("Little blue robot guy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INTERNAL_WIDTH, INTERNAL_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 		if(gWindow == NULL) {
 			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
@@ -96,6 +92,14 @@ bool init() {
 				success = false;
 			}
 			else {
+				if(!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "0" )) {
+					printf("Warning: Failed to set render hint!");
+				}
+
+				if(!SDL_RenderSetLogicalSize(gRenderer, INTERNAL_WIDTH, INTERNAL_HEIGHT)) {
+					printf("Warning: Failed to set logical size");
+				}
+
 				int imgFlags = IMG_INIT_PNG;
 				if(!(IMG_Init(imgFlags) & imgFlags)) {
 					printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
