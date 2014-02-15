@@ -30,12 +30,13 @@ class Player {
 		void handleEvents(SDL_Event& e);
 	private:
 		void setCamera();
+		void jump();
 		void animate();
 		bool loadFromFile(std::string path);
 		SDL_Texture* mTexture;
 		int frame = 0;
-		bool isMoving = false;
-		float x,y, xVel = 80.0f;
+		bool isMoving = false, isJumping;
+		float x,y, xVel = 80.0f, gravity = 50.0f, yVel = 0;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		Uint32 lastAnimated=0;
 };

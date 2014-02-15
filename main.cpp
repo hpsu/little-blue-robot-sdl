@@ -83,6 +83,10 @@ Player::Player() {
 };
 
 void Player::animate() {
+	if(isJumping) {
+		frame = 6;
+		return;
+	}
 	if(lastAnimated + 100 > SDL_GetTicks()) return;
 	lastAnimated = SDL_GetTicks();
 	if(isMoving) {
@@ -98,6 +102,12 @@ void Player::animate() {
 	}
 }
 
+void Player::jump() {
+	yVel = -240.0f;
+	gravity = 700.0f;
+	isJumping = true;
+}
+
 void Player::setCamera() {
 	camera.x = (x + 32 / 2) - (INTERNAL_WIDTH /2);
 	if(camera.x < 0) camera.x=0;
@@ -105,20 +115,30 @@ void Player::setCamera() {
 }
 
 void Player::move() {
-	animate();
 	float delta = (currentTime - lastTime) / 1000.0f;
 	if(isMoving) {
 		x += xVel * delta;
 		if(x < 0) x = 0;
 		else if(x > ((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32)
 				x=((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32;
+
 		setCamera();
 	}
+
+	yVel += gravity*delta;
+	y += yVel*delta;
+	if (y > (12*SPRITESIZE)-32) {
+		y = (12*SPRITESIZE)-32;
+		isJumping = false;
+	}
+
+	animate();
+
 }
 
 void Player::render() {
 	SDL_Rect clipRect = {
-		isMoving ? frame*32 : 0
+		frame*32
 		,0
 		,32
 		,32
@@ -146,6 +166,9 @@ void Player::handleEvents(SDL_Event& e) {
 				flip = SDL_FLIP_NONE;
 				isMoving = true;
 				xVel = abs(xVel);
+				break;
+			case SDLK_SPACE:
+				jump();
 				break;
 		}
 	}
