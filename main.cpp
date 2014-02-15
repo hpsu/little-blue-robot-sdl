@@ -73,6 +73,102 @@ int level1[][BLOCKSIZEY][BLOCKSIZEX] = {
 
 int level1_blocks = 4;
 
+Player::Player() {
+	mTexture = NULL;
+	x = 100;
+	y = 12*SPRITESIZE-32;
+	if(!loadFromFile("res/player.png")) {
+		printf("Failed to load sprite sheet texture!\n");
+	}
+	lastUpdateTime = SDL_GetTicks();
+};
+
+void Player::move() {
+	Uint32 delta = SDL_GetTicks() - lastUpdateTime;
+	if(acDelta > 100) {
+		acDelta = 0;
+		if(isMoving) {
+			if(frame == 0) {
+				frame = 2;
+			} 
+			else {
+				frame = frame == 3 ? 4: 3;
+			}
+		} else {
+			// @TODO: 
+			frame = 0;
+		}
+	}
+	acDelta += delta;
+	lastUpdateTime = SDL_GetTicks();
+}
+
+void Player::render() {
+	SDL_Rect clipRect = {
+		//frameOffset * SPRITESIZE
+		isMoving ? frame*32 : 0
+		,0
+		,32
+		,32
+	};
+	SDL_Rect renderRect = {
+		x
+		,y
+		,32
+		,32
+	};
+
+	SDL_RenderCopyEx(gRenderer, mTexture, &clipRect, &renderRect, 0, NULL, flip);
+}
+
+void Player::handleEvents(SDL_Event& e) {
+	if(e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+		switch(e.key.keysym.sym) {
+			case SDLK_LEFT:
+				//camera.x-=10;
+				flip = SDL_FLIP_HORIZONTAL;
+				if(camera.x < 0) camera.x=0;
+				isMoving = true;
+				break;
+
+			case SDLK_RIGHT:
+				//camera.x+=10;
+				flip = SDL_FLIP_NONE;
+				if(camera.x > (level1_blocks-1)*BLOCKSIZEX*SPRITESIZE) camera.x=(level1_blocks-1)*BLOCKSIZEX*SPRITESIZE;
+				isMoving = true;
+				break;
+		}
+	}
+	if(e.type == SDL_KEYUP && e.key.repeat == 0) {
+		switch(e.key.keysym.sym) {
+			case SDLK_LEFT:
+			case SDLK_RIGHT:
+				isMoving = false;
+				break;
+		}
+	}
+}
+
+bool Player::loadFromFile(std::string path) {
+	SDL_Texture* newTexture = NULL;
+	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+
+	if(loadedSurface == NULL) {
+		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+	}
+	else {
+		newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
+		if(newTexture == NULL) {
+			printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+		}
+
+		SDL_FreeSurface(loadedSurface);
+	}
+
+	mTexture = newTexture;
+	return mTexture != NULL;
+}
+
 SpriteSheet::SpriteSheet() {
 	mTexture = NULL;
 }
@@ -123,7 +219,6 @@ void SpriteSheet::render(int x, int y, int frameOffset) {
 		,SPRITESIZE
 		,SPRITESIZE
 	};
-
 
 	SDL_RenderCopy(gRenderer, mTexture, &clipRect, &renderRect);
 }
@@ -225,6 +320,7 @@ int main(int argc, char* args[]) {
 		else {	
 			bool quit = false;
 			SDL_Event e;
+			Player player;
 
 			while(!quit) {
 				while(SDL_PollEvent(&e) != 0) {
@@ -241,25 +337,19 @@ int main(int argc, char* args[]) {
 								case SDLK_F11:
 									toggleFullscreen();
 									break;
-
-								case SDLK_LEFT:
-									camera.x-=10;
-									if(camera.x < 0) camera.x=0;
-									break;
-
-								case SDLK_RIGHT:
-									camera.x+=10;
-									if(camera.x > (level1_blocks-1)*BLOCKSIZEX*SPRITESIZE) camera.x=(level1_blocks-1)*BLOCKSIZEX*SPRITESIZE;
-									break;
 							}
 							break;
 					}
+					player.handleEvents(e);
 				}
+
+				player.move();
 
 				SDL_SetRenderDrawColor( gRenderer, 0x0, 0xE8, 0xD8, 0xFF );
 				SDL_RenderClear( gRenderer );
 
 				paintLevel(level1);
+				player.render();
 
 				SDL_RenderPresent( gRenderer );
 			}

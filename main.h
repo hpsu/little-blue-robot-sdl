@@ -22,6 +22,24 @@ class SpriteSheet {
 		SDL_Texture* mTexture;
 };
 
+class Player {
+	public:
+		Player();
+		void move();
+		void render();
+		void handleEvents(SDL_Event& e);
+		
+		bool loadFromFile(std::string path);
+
+	private:
+		SDL_Texture* mTexture;
+		int x,y, frame = 0;
+		bool isMoving = false;
+		SDL_RendererFlip flip = SDL_FLIP_NONE;
+		Uint32 lastUpdateTime;
+		Uint32 acDelta;
+};
+
 bool init();
 bool loadMedia();
 void close();
