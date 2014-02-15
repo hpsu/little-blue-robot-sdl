@@ -80,40 +80,52 @@ Player::Player() {
 	if(!loadFromFile("res/player.png")) {
 		printf("Failed to load sprite sheet texture!\n");
 	}
-	lastUpdateTime = SDL_GetTicks();
 };
 
-void Player::move() {
-	Uint32 delta = SDL_GetTicks() - lastUpdateTime;
-	if(acDelta > 100) {
-		acDelta = 0;
-		if(isMoving) {
-			if(frame == 0) {
-				frame = 2;
-			} 
-			else {
-				frame = frame == 3 ? 4: 3;
-			}
-		} else {
-			// @TODO: 
-			frame = 0;
+void Player::animate() {
+	if(lastAnimated + 100 > SDL_GetTicks()) return;
+	lastAnimated = SDL_GetTicks();
+	if(isMoving) {
+		if(frame == 0) {
+			frame = 2;
+		} 
+		else {
+			frame = frame == 3 ? 4: 3;
 		}
+	} else {
+		// @TODO: Blink eyes
+		frame = 0;
 	}
-	acDelta += delta;
-	lastUpdateTime = SDL_GetTicks();
+}
+
+void Player::setCamera() {
+	camera.x = (x + 32 / 2) - (INTERNAL_WIDTH /2);
+	if(camera.x < 0) camera.x=0;
+    else if(camera.x > (level1_blocks-1)*BLOCKSIZEX*SPRITESIZE) camera.x=(level1_blocks-1)*BLOCKSIZEX*SPRITESIZE;
+}
+
+void Player::move() {
+	animate();
+	float delta = (currentTime - lastTime) / 1000.0f;
+	if(isMoving) {
+		x += xVel * delta;
+		if(x < 0) x = 0;
+		else if(x > ((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32)
+				x=((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32;
+		setCamera();
+	}
 }
 
 void Player::render() {
 	SDL_Rect clipRect = {
-		//frameOffset * SPRITESIZE
 		isMoving ? frame*32 : 0
 		,0
 		,32
 		,32
 	};
 	SDL_Rect renderRect = {
-		x
-		,y
+		(int)x - camera.x
+		,(int)y
 		,32
 		,32
 	};
@@ -125,17 +137,15 @@ void Player::handleEvents(SDL_Event& e) {
 	if(e.type == SDL_KEYDOWN && e.key.repeat == 0) {
 		switch(e.key.keysym.sym) {
 			case SDLK_LEFT:
-				//camera.x-=10;
 				flip = SDL_FLIP_HORIZONTAL;
-				if(camera.x < 0) camera.x=0;
 				isMoving = true;
+				xVel = abs(xVel)*-1.0f;
 				break;
 
 			case SDLK_RIGHT:
-				//camera.x+=10;
 				flip = SDL_FLIP_NONE;
-				if(camera.x > (level1_blocks-1)*BLOCKSIZEX*SPRITESIZE) camera.x=(level1_blocks-1)*BLOCKSIZEX*SPRITESIZE;
 				isMoving = true;
+				xVel = abs(xVel);
 				break;
 		}
 	}
@@ -231,7 +241,7 @@ bool init() {
 		success = false;
 	}
 	else {
-		gWindow = SDL_CreateWindow("Little blue robot guy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INTERNAL_WIDTH, INTERNAL_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+		gWindow = SDL_CreateWindow("Little blue robot guy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INTERNAL_WIDTH, INTERNAL_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 		if(gWindow == NULL) {
 			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
 			success = false;
@@ -273,7 +283,7 @@ bool loadMedia() {
 		printf("Failed to load sprite sheet texture!\n");
 		return false;
 	}
-
+ 
 	return true;
 }
 
@@ -323,6 +333,8 @@ int main(int argc, char* args[]) {
 			Player player;
 
 			while(!quit) {
+				lastTime = currentTime;
+				currentTime = SDL_GetTicks();
 				while(SDL_PollEvent(&e) != 0) {
 					switch(e.type) {
 						case SDL_QUIT:
@@ -350,6 +362,7 @@ int main(int argc, char* args[]) {
 
 				paintLevel(level1);
 				player.render();
+
 
 				SDL_RenderPresent( gRenderer );
 			}

@@ -28,16 +28,16 @@ class Player {
 		void move();
 		void render();
 		void handleEvents(SDL_Event& e);
-		
-		bool loadFromFile(std::string path);
-
 	private:
+		void setCamera();
+		void animate();
+		bool loadFromFile(std::string path);
 		SDL_Texture* mTexture;
-		int x,y, frame = 0;
+		int frame = 0;
 		bool isMoving = false;
+		float x,y, xVel = 80.0f;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
-		Uint32 lastUpdateTime;
-		Uint32 acDelta;
+		Uint32 lastAnimated=0;
 };
 
 bool init();
@@ -47,6 +47,7 @@ void close();
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SpriteSheet gSpriteSheetTexture;
+unsigned int lastTime = 0, currentTime;
 
 int bIsFullscreen = false;
 SDL_Rect camera = { 0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT };
