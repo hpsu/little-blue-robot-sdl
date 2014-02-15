@@ -264,7 +264,7 @@ bool init() {
 		success = false;
 	}
 	else {
-		gWindow = SDL_CreateWindow("Little blue robot guy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INTERNAL_WIDTH, INTERNAL_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+		gWindow = SDL_CreateWindow("Little blue robot guy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, INTERNAL_WIDTH*4, INTERNAL_HEIGHT*4, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 		if(gWindow == NULL) {
 			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
 			success = false;
@@ -354,6 +354,7 @@ int main(int argc, char* args[]) {
 			bool quit = false;
 			SDL_Event e;
 			Player player;
+			SDL_Rect outlineRect = {0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT};
 
 			while(!quit) {
 				lastTime = currentTime;
@@ -379,9 +380,12 @@ int main(int argc, char* args[]) {
 				}
 
 				player.move();
+				SDL_SetRenderDrawColor( gRenderer, 0x0, 0x0, 0x0, 0xFF );
+
+				SDL_RenderClear( gRenderer );
 
 				SDL_SetRenderDrawColor( gRenderer, 0x0, 0xE8, 0xD8, 0xFF );
-				SDL_RenderClear( gRenderer );
+                SDL_RenderFillRect( gRenderer, {&outlineRect} );
 
 				paintLevel(level1);
 				player.render();
