@@ -77,7 +77,7 @@ Player::Player() {
 	mTexture = NULL;
 	x = 100;
 	y = 12*SPRITESIZE-32;
-	if(!loadFromFile("res/player.png")) {
+	if(!loadFromFile("res/player.bmp")) {
 		printf("Failed to load sprite sheet texture!\n");
 	}
 };
@@ -87,9 +87,9 @@ void Player::animate() {
 		frame = 6;
 		return;
 	}
-	if(lastAnimated + 100 > SDL_GetTicks()) return;
-	lastAnimated = SDL_GetTicks();
 	if(isMoving) {
+		if(lastAnimated + 100 > SDL_GetTicks()) return;
+		lastAnimated = SDL_GetTicks();
 		if(frame == 0) {
 			frame = 2;
 		} 
@@ -97,8 +97,10 @@ void Player::animate() {
 			frame = frame == 3 ? 4: 3;
 		}
 	} else {
-		// @TODO: Blink eyes
-		frame = 0;
+		if(frame == 0 && lastAnimated + 2000 > SDL_GetTicks()) return;
+		if(frame == 1 && lastAnimated + 100 > SDL_GetTicks()) return;
+		lastAnimated = SDL_GetTicks();
+		frame = frame == 0 ? 1 : 0;
 	}
 }
 
@@ -184,10 +186,10 @@ void Player::handleEvents(SDL_Event& e) {
 
 bool Player::loadFromFile(std::string path) {
 	SDL_Texture* newTexture = NULL;
-	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+	SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
 
 	if(loadedSurface == NULL) {
-		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+		printf("Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
 	}
 	else {
 		newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
@@ -214,10 +216,10 @@ bool SpriteSheet::loadFromFile(std::string path) {
 	free();
 
 	SDL_Texture* newTexture = NULL;
-	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+	SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
 
 	if(loadedSurface == NULL) {
-		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), SDL_GetError());
 	}
 	else {
 		newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
@@ -280,7 +282,7 @@ bool init() {
 					printf("Warning: Failed to set render hint!");
 				}
 
-				if(!SDL_SetHint( SDL_HINT_RENDER_VSYNC, "1"))
+				if(!SDL_SetHint( SDL_HINT_RENDER_VSYNC, "0"))
 				{
 					printf( "Warning: VSync not enabled!" );
 				}
@@ -289,12 +291,6 @@ bool init() {
 				if(!SDL_RenderSetLogicalSize(gRenderer, INTERNAL_WIDTH, INTERNAL_HEIGHT)) {
 					printf("Warning: Failed to set logical size");
 				}
-
-				int imgFlags = IMG_INIT_PNG;
-				if(!(IMG_Init(imgFlags) & imgFlags)) {
-					printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-					success = false;
-				}
 			}
 		}
 	}
@@ -302,7 +298,7 @@ bool init() {
 }
 
 bool loadMedia() {
-	if(!gSpriteSheetTexture.loadFromFile("res/sprites.png")) {
+	if(!gSpriteSheetTexture.loadFromFile("res/sprites.bmp")) {
 		printf("Failed to load sprite sheet texture!\n");
 		return false;
 	}
@@ -318,7 +314,7 @@ void close() {
 	gWindow = NULL;
 	gRenderer = NULL;
 
-	IMG_Quit();
+	//IMG_Quit();
 	SDL_Quit();
 }
 
