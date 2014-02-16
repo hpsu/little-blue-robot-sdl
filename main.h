@@ -35,15 +35,18 @@ class Player {
 		bool loadFromFile(std::string path);
 		SDL_Texture* mTexture;
 		int frame = 0;
-		bool isMoving = false, isJumping;
-		float x,y, xVel = 80.0f, gravity = 50.0f, yVel = 0;
+		bool isMoving = false, isJumping = false, isGrounded = true;
+		float x,y, xVel = 80.0f, gravity = 700.0f, yVel = 50.0f;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		Uint32 lastAnimated=0;
+		SDL_Point hotSpot1, hotSpot2;
+		int getTileAt(int x, int y);
 };
 
 bool init();
 bool loadMedia();
 void close();
+bool collides(SDL_Rect *a, SDL_Rect *b);
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;

@@ -77,13 +77,17 @@ Player::Player() {
 	mTexture = NULL;
 	x = 100;
 	y = 12*SPRITESIZE-32;
+
+	hotSpot1 = {9, 27}; // Bottom left hotspot
+	hotSpot2 = {23, 27}; // Bottom right hotspot
+
 	if(!loadFromFile("res/player.bmp")) {
 		printf("Failed to load sprite sheet texture!\n");
 	}
 };
 
 void Player::animate() {
-	if(isJumping) {
+	if(isJumping || !isGrounded) {
 		frame = 6;
 		return;
 	}
@@ -105,7 +109,8 @@ void Player::animate() {
 }
 
 void Player::jump() {
-	yVel = -240.0f;
+	if(!isGrounded) return;
+	yVel = -260.0f;
 	gravity = 700.0f;
 	isJumping = true;
 }
@@ -123,17 +128,23 @@ void Player::move() {
 		if(x < 0) x = 0;
 		else if(x > ((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32)
 				x=((level1_blocks)*BLOCKSIZEX*SPRITESIZE) - 32;
-
+  
 		setCamera();
 	}
 
 	yVel += gravity*delta;
 	y += yVel*delta;
-	if (y > (12*SPRITESIZE)-32) {
-		y = (12*SPRITESIZE)-32;
-		isJumping = false;
-	}
 
+	// Check that at least one of the bottom two hotspots are in solid tiles.
+	if((int)yVel > 0 && (getTileAt(hotSpot1.x+(int)x, hotSpot1.y+(int)y) > -1 || getTileAt(hotSpot2.x+(int)x, hotSpot2.y+(int)y) > -1)) {
+		y = (int)y;
+		yVel = 50.0f;
+		isGrounded = true;
+		isJumping = false;
+	} else {
+		isGrounded = false;
+	}
+	
 	animate();
 
 }
@@ -153,6 +164,15 @@ void Player::render() {
 	};
 
 	SDL_RenderCopyEx(gRenderer, mTexture, &clipRect, &renderRect, 0, NULL, flip);
+
+	// Debug hotspots
+	if(true) {
+		SDL_Rect r1 = {(int)x - camera.x + hotSpot1.x, (int)y + hotSpot1.y, 1, 1};
+		SDL_Rect r2 = {(int)x - camera.x + hotSpot2.x, (int)y + hotSpot2.y, 1, 1};
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0x0, 0xFF, 0xFF );
+		SDL_RenderFillRect(gRenderer, &r1);
+		SDL_RenderFillRect(gRenderer, &r2);
+	}
 }
 
 void Player::handleEvents(SDL_Event& e) {
@@ -202,6 +222,14 @@ bool Player::loadFromFile(std::string path) {
 
 	mTexture = newTexture;
 	return mTexture != NULL;
+}
+
+int Player::getTileAt(int px, int py) {
+	// @TODO: Check boundaries!
+	int block = px / SPRITESIZE / BLOCKSIZEX;
+	int col = (px / SPRITESIZE) - (block*BLOCKSIZEX);
+	int row = py / SPRITESIZE;
+	return level1[block][row][col];
 }
 
 SpriteSheet::SpriteSheet() {
@@ -338,6 +366,20 @@ void toggleFullscreen() {
 	bIsFullscreen = !bIsFullscreen;
 }
 
+// Check if two rectangles intersect
+bool collides(SDL_Rect *a, SDL_Rect *b) {
+	int ax1 = a->x
+		,ax2 = a->x+a->w
+		,ay1 = a->y
+		,ay2 = a->y+a->h
+		,bx1 = b->x
+		,bx2 = b->x+b->w
+		,by1 = b->y
+		,by2 = b->y+b->h;
+	return (ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1);
+
+}
+
 int main(int argc, char* args[]) {
 	if(!init()) {
 		printf("Failed to initialize!\n");
@@ -384,8 +426,8 @@ int main(int argc, char* args[]) {
                 SDL_RenderFillRect( gRenderer, {&outlineRect} );
 
 				paintLevel(level1);
-				player.render();
 
+				player.render();
 
 				SDL_RenderPresent( gRenderer );
 			}
