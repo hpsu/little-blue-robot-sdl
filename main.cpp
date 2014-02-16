@@ -132,17 +132,18 @@ void Player::move() {
 		setCamera();
 	}
 
-	yVel += gravity*delta;
-	y += yVel*delta;
 
 	// Check that at least one of the bottom two hotspots are in solid tiles.
-	if((int)yVel > 0 && (getTileAt(hotSpot1.x+(int)x, hotSpot1.y+(int)y) > -1 || getTileAt(hotSpot2.x+(int)x, hotSpot2.y+(int)y) > -1)) {
-		y = (int)y;
+	if((int)yVel > 0 && (
+		getTileAt(hotSpot1.x+x, hotSpot1.y+y) > -1 || 
+		getTileAt(hotSpot2.x+x, hotSpot2.y+y) > -1)) {
 		yVel = 50.0f;
 		isGrounded = true;
 		isJumping = false;
 	} else {
 		isGrounded = false;
+	yVel += gravity*delta;
+	y += yVel*delta;
 	}
 	
 	animate();
