@@ -118,6 +118,7 @@ Tile Map::getTile(int px, int py) {
 }
 
 void Map::render() {
+	// @TODO: Only draw visible tiles
 	Uint32 i;
 	for(i=0; i < TileList.size(); i++) {
 		gSpriteSheetTexture.render(TileList[i].x, TileList[i].y, TileList[i].tileID);
@@ -127,10 +128,12 @@ void Map::render() {
 Player::Player() {
 	mTexture = NULL;
 	x = 100;
-	y = 12*SPRITESIZE-32;
+	y = 12*SPRITESIZE-27;
 
 	hotSpot1 = {9, 27}; // Bottom left hotspot
 	hotSpot2 = {23, 27}; // Bottom right hotspot
+
+	printf("init: %0.2f  %0.2f\n", y, yVel);
 
 	if(!loadFromFile("res/player.bmp")) {
 		printf("Failed to load sprite sheet texture!\n");
@@ -187,7 +190,7 @@ void Player::move() {
 
 
 	// Check that at least one of the bottom two hotspots are in solid tiles.
-	if((int)yVel > 0 && (
+	if(yVel > 0 && (
 		map.getTile(hotSpot1.x+x, hotSpot1.y+y).typeID == TILE_TYPE_BLOCK || 
 		map.getTile(hotSpot2.x+x, hotSpot2.y+y).typeID == TILE_TYPE_BLOCK)) {
 		yVel = 50.0f;
@@ -195,8 +198,10 @@ void Player::move() {
 		isJumping = false;
 	} else {
 		isGrounded = false;
-	yVel += gravity*delta;
-	y += yVel*delta;
+		yVel += gravity*delta;
+		y += yVel*delta;
+		printf("%0.2f  %0.2f\n", y, yVel);
+
 	}
 	
 	animate();
@@ -371,7 +376,7 @@ bool init() {
 
 
 				if(!SDL_RenderSetLogicalSize(gRenderer, INTERNAL_WIDTH, INTERNAL_HEIGHT)) {
-					printf("Warning: Failed to set logical size");
+					printf("Warning: Failed to set logical size\n");
 				}
 			}
 		}
@@ -400,20 +405,6 @@ void close() {
 	SDL_Quit();
 }
 
-
-void paintLevel(int level[][BLOCKSIZEY][BLOCKSIZEX]) {
-	int col;
-	int row;
-	int block;
-	for(block = 0; block < level1_blocks; block++) {
-		for(row = 0; row < BLOCKSIZEY; row++) {
-			for(col = 0; col < BLOCKSIZEX; col++) {
-				if(level[block][row][col] >= 0)
-					gSpriteSheetTexture.render(block * BLOCKSIZEX + col, row, level[block][row][col]);
-			}
-		}
-	}
-}
 
 void toggleFullscreen() {
 	SDL_SetWindowFullscreen(gWindow, bIsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -448,6 +439,7 @@ int main(int argc, char* args[]) {
 			Player player;
 			SDL_Rect outlineRect = {0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT};
 			map.load(level1);
+			currentTime = SDL_GetTicks();
 
 			while(!quit) {
 				lastTime = currentTime;
@@ -480,9 +472,7 @@ int main(int argc, char* args[]) {
 				SDL_SetRenderDrawColor( gRenderer, 0x0, 0xE8, 0xD8, 0xFF );
                 SDL_RenderFillRect( gRenderer, {&outlineRect} );
 
-				//paintLevel(level1);
 				map.render();
-
 				player.render();
 
 				SDL_RenderPresent( gRenderer );
