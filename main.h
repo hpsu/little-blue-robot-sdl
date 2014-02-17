@@ -2,6 +2,7 @@
 //#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 #define INTERNAL_WIDTH 	256
 #define INTERNAL_HEIGHT 240
@@ -41,6 +42,40 @@ class Player {
 		Uint32 lastAnimated=0;
 		SDL_Point hotSpot1, hotSpot2;
 		int getTileAt(int x, int y);
+};
+
+enum {
+	TILE_TYPE_NONE = 0,
+	TILE_TYPE_NORMAL,
+	TILE_TYPE_BLOCK,
+	TILE_TYPE_LADDER
+};
+ 
+class Tile {
+	public:
+		int tileID;
+		int typeID;
+		int x;
+		int y;
+ 
+	public:
+		Tile();
+};
+
+class Map {
+	public:
+		SDL_Surface* Surf_Tileset;
+ 
+	private:
+		std::vector<Tile> TileList;
+ 
+	public:
+		Map();
+ 
+	public:
+		bool load(int level[]);
+		Tile getTile(int px, int py);
+ 		void render();
 };
 
 bool init();
